@@ -36,3 +36,55 @@ def plot_accs_for_train_test(plt, train_acc, val_acc, xtick_num=2):
     plt.set_xticks([n for n in range(0, len(iterations), xtick_num)])
     plt.set_ylabel('acc')
     plt.legend()
+    
+
+def vis_predictions(adversarial_results, nonnan_idx=None, title='FGSM'):
+    
+    rows, cols = 10, 10
+    data_num = len(adversarial_results)
+    np.random.shuffle(adversarial_results)
+    original_samples = np.zeros((data_num, 32, 32), )
+    original_labels = np.zeros((data_num,),)
+    perturbed_samples = np.zeros((data_num, 32, 32), )
+    perturbed_labels = np.zeros((data_num, ), )
+    
+    for i, adv in enumerate(adversarial_results):
+        original_labels[i] = adv[0]
+        original_samples[i, :, :] = adv[1]
+        perturbed_labels[i] = adv[2]
+        perturbed_samples[i, :, :] = adv[3]
+        
+    if nonnan_idx is not None:
+        original_labels = original_labels[nonnan_idx]
+        original_samples = original_samples[nonnan_idx, :, :]
+        perturbed_labels = perturbed_labels[nonnan_idx]
+        perturbed_samples = perturbed_samples[nonnan_idx, :, :]
+        
+    fig, ax = plt.subplots(nrows=rows, ncols=cols)
+    fig.set_size_inches(18.5, 10.5)
+    fig.suptitle("Original samples and {} samples".format(title), fontsize=24, y=1.04)
+    
+    for i in range(rows):
+        selected_idx = np.where(original_labels == i)[0]
+        img = original_samples[selected_idx][:5]
+        adv_img = perturbed_samples[selected_idx][:5]
+        img_label = original_labels[selected_idx][:5]
+        adv_img_label = perturbed_labels[selected_idx][:5]
+        
+        for j in range(cols):
+            k = i // 2
+            
+            if j % 2 == 0:
+                ax[i][j].set_title('sample: {0}'.format(img_label[k]))
+                ax[i][j].imshow(img[k])
+                
+            else:
+                ax[i][j].set_title('adversarial: {}'.format(adv_img_label[k]))
+                ax[i][j].imshow(adv_img[k])
+                
+            ax[i][j].axes.get_xaxis().set_visible(False)
+            ax[i][j].axes.get_yaxis().set_visible(False)
+            
+    plt.tight_layout()
+ 
+                                                    
